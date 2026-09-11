@@ -229,8 +229,17 @@ const chart = echarts.init($('chart'));
 
 
 
+// api: a 401 means the session expired (2h) — go back to the login page instead of
+// trying to draw an error object.
+async function api(url, opts) {
+  const res = await fetch(url, opts);
+  if (res.status === 401) { location.href = '/login'; throw new Error('session expired'); }
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  return res.json();
+}
+
 async function loadTargets() {
-  targets = await (await fetch('/api/targets')).json() || [];
+  targets = await api('/api/targets') || [];
   const kinds = new Set(targets.map(t => t.type));
   $('tfilter').style.display = kinds.size > 1 ? '' : 'none';
   const visible = targets.filter(t => typeFilter === 'all' || t.type === typeFilter);
@@ -272,7 +281,7 @@ async function renderInner(seq) {
   inflight = ctl;
   let rounds;
   try {
-    rounds = await (await fetch(url, { signal: ctl.signal })).json() || [];
+    rounds = await api(url, { signal: ctl.signal }) || [];
   } catch (e) {
     if (e.name === 'AbortError') return; // 被新点击取代,静默退出
     throw e;

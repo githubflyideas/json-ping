@@ -16,36 +16,91 @@ import (
 //go:embed static
 var staticFS embed.FS
 
+// sessionTTL is an absolute lifetime: a login is good for two hours from the moment
+// it was issued, whether or not the page keeps refreshing.
+const sessionTTL = 7200 * time.Second
+
+// maxInflight caps concurrent data requests (/api/targets, /api/series). A long
+// series read holds the CPU and the disk; five at a time keeps a small host
+// responsive no matter how many tabs or clients are open.
+const (
+	maxInflight = 5
+	queueWait   = 30 * time.Second // then 503: a queue this long means the host is saturated
+)
+
 // sessions: in-memory, so a restart logs everyone out — acceptable and simple
 // for a single-binary tool. Auth exists only when users are passed on the CLI.
 type sessions struct {
-	mu sync.Mutex
-	m  map[string]time.Time
+	mu  sync.Mutex
+	m   map[string]time.Time
+	now func() time.Time // tests move the clock
 }
+
+func newSessions() *sessions { return &sessions{m: map[string]time.Time{}, now: time.Now} }
 
 func (s *sessions) issue() string {
 	b := make([]byte, 16)
 	rand.Read(b)
 	tok := hex.EncodeToString(b)
 	s.mu.Lock()
-	s.m[tok] = time.Now().Add(7 * 24 * time.Hour)
+	now := s.now()
+	for t, exp := range s.m { // tokens nobody presents again would otherwise pile up
+		if now.After(exp) {
+			delete(s.m, t)
+		}
+	}
+	s.m[tok] = now.Add(sessionTTL)
 	s.mu.Unlock()
 	return tok
+}
+
+func (s *sessions) revoke(tok string) {
+	s.mu.Lock()
+	delete(s.m, tok)
+	s.mu.Unlock()
 }
 
 func (s *sessions) valid(tok string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	exp, ok := s.m[tok]
-	if !ok || time.Now().After(exp) {
+	if !ok || s.now().After(exp) {
 		delete(s.m, tok)
 		return false
 	}
 	return true
 }
 
+// limiter admits at most n handlers at once. Excess requests wait for a slot until
+// the client gives up (the UI aborts superseded series queries) or `wait` passes.
+func limiter(n int, wait time.Duration) func(http.HandlerFunc) http.HandlerFunc {
+	slots := make(chan struct{}, n)
+	return func(h http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			t := time.NewTimer(wait)
+			defer t.Stop()
+			select {
+			case slots <- struct{}{}:
+			case <-r.Context().Done():
+				return
+			case <-t.C:
+				w.Header().Set("Retry-After", "5")
+				http.Error(w, `{"error":"busy"}`, http.StatusServiceUnavailable)
+				return
+			}
+			defer func() { <-slots }()
+			h(w, r)
+		}
+	}
+}
+
 func serveWeb(cfg *Config, store *Store, users map[string]string) error {
-	sess := &sessions{m: map[string]time.Time{}}
+	return http.ListenAndServe(cfg.Listen, newMux(cfg, store, users))
+}
+
+func newMux(cfg *Config, store *Store, users map[string]string) http.Handler {
+	sess := newSessions()
+	limit := limiter(maxInflight, queueWait)
 	mux := http.NewServeMux()
 
 	authed := func(r *http.Request) bool {
@@ -57,15 +112,17 @@ func serveWeb(cfg *Config, store *Store, users map[string]string) error {
 	}
 	guard := func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			if !authed(r) {
+			if !authed(r) { // before the limiter: unauthenticated requests never hold a slot
 				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 				return
 			}
-			t0 := time.Now()
-			h(w, r)
-			if d := time.Since(t0); d > time.Second {
-				log.Printf("slow request: %s %s took %v", r.URL.Path, r.URL.RawQuery, d)
-			}
+			limit(func(w http.ResponseWriter, r *http.Request) {
+				t0 := time.Now()
+				h(w, r)
+				if d := time.Since(t0); d > time.Second {
+					log.Printf("slow request: %s %s took %v", r.URL.Path, r.URL.RawQuery, d)
+				}
+			})(w, r)
 		}
 	}
 	page := func(name string) http.HandlerFunc {
@@ -107,10 +164,13 @@ func serveWeb(cfg *Config, store *Store, users map[string]string) error {
 			return
 		}
 		http.SetCookie(w, &http.Cookie{Name: "pingping_session", Value: sess.issue(),
-			Path: "/", HttpOnly: true, MaxAge: 7 * 24 * 3600, SameSite: http.SameSiteLaxMode})
+			Path: "/", HttpOnly: true, MaxAge: int(sessionTTL.Seconds()), SameSite: http.SameSiteLaxMode})
 		writeJSON(w, map[string]bool{"ok": true})
 	})
 	mux.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
+		if c, err := r.Cookie("pingping_session"); err == nil {
+			sess.revoke(c.Value) // otherwise the token stays valid until it expires
+		}
 		http.SetCookie(w, &http.Cookie{Name: "pingping_session", Value: "", Path: "/", MaxAge: -1})
 		writeJSON(w, map[string]bool{"ok": true})
 	})
@@ -132,7 +192,7 @@ func serveWeb(cfg *Config, store *Store, users map[string]string) error {
 			Last24h     Stats  `json:"last_24h"`
 		}
 		byName := map[string]TargetCfg{}
-		for _, t := range cfg.Targets {
+		for _, t := range cfg.TargetList() {
 			byName[t.Name] = t
 		}
 		var out []item
@@ -173,7 +233,7 @@ func serveWeb(cfg *Config, store *Store, users map[string]string) error {
 		writeJSON(w, store.ReadRange(r.Context(), name, from, to))
 	}))
 
-	return http.ListenAndServe(cfg.Listen, mux)
+	return mux
 }
 
 func targetAddr(t TargetCfg) string {

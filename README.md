@@ -12,12 +12,15 @@ Just scp and run
 
 ```bash
 #install
-cd /home/pingping/
+mkdir -p /home/pingping && cd /home/pingping
 wget https://github.com/githubflyideas/pingping/releases/download/v2.11.2/pingping-v2.11.2-linux-amd64.tar.gz
 tar -zxvf pingping-v2.11.2-linux-amd64.tar.gz
 
 #run
 ./pingping user=admin passwd=admin
+
+#run in background
+nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &
 ```
 Open http://localhost:8517 and watch your first puff of network smoke.
 
@@ -50,3 +53,34 @@ Latest [Releases](https://github.com/githubflyideas/pingping/releases)
 
 
 apache 2.0
+
+
+## Parameters
+
+`./pingping --help` prints all of this with copy-ready examples.
+
+```
+./pingping [flags] [user=NAME[,NAME2...] passwd=PASS[,PASS2...]]
+```
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `--listen host:port` | `0.0.0.0:8517` | Web UI address. `0.0.0.0` = all interfaces; an IP binds one interface only |
+| `--localhost` | off | Bind `127.0.0.1` only (this machine only), keeping the `--listen` port |
+| `--version` | | Print version and exit |
+| `--help` | | Help with examples (also `./pingping help`) |
+| `user=a,b passwd=x,y` | no login | Turn the login page on. Users and passwords pair by position and the counts must match. A login lasts 2 hours; a restart logs everyone out |
+
+Flags come first, `user=` / `passwd=` last:
+
+```
+./pingping                                              # 0.0.0.0:8517, no login
+./pingping --listen 0.0.0.0:9000 user=admin passwd=admin
+./pingping --localhost                                  # 127.0.0.1:8517
+nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &   # background; stop with: pkill -x pingping
+```
+
+Everything else is fixed: `targets/` and `data/` sit in the directory you start it in (`/home/pingping`), the default pace
+probes every 60 s with 20 packets, full samples are kept 30 days and data is deleted after 300 days.
+Targets are not parameters — edit `targets/ping.list` / `targets/tcp.list`; changes apply within 3 seconds.
+

@@ -1,13 +1,14 @@
 package main
 
 import (
-		"fmt"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // pingping 2.0: a probe, text files, and a smoke graph. Nothing else.
@@ -21,6 +22,23 @@ type Config struct {
 	Probe         ProbeCfg
 	HotDays       int // full samples kept this long
 	RetentionDays int // downsampled data kept this long
+
+	// Targets is written by the reload loop while web handlers read it. Once the
+	// program is running, go through SetTargets / TargetList only.
+	tmu sync.RWMutex
+}
+
+func (c *Config) SetTargets(ts []TargetCfg) {
+	c.tmu.Lock()
+	c.Targets = ts
+	c.tmu.Unlock()
+}
+
+// TargetList returns a copy that is safe to use after a concurrent reload.
+func (c *Config) TargetList() []TargetCfg {
+	c.tmu.RLock()
+	defer c.tmu.RUnlock()
+	return append([]TargetCfg(nil), c.Targets...)
 }
 
 func defaultConfig() *Config {
@@ -99,7 +117,6 @@ func validateTargets(cfg *Config) error {
 	return nil
 }
 
-
 // loadTargetLists reads targets/ping.list and tcp.list.
 // line format: host[:port]  [name...]  [pace=fast|slow] [interval=sec]
 func loadTargetLists(dir string) ([]TargetCfg, error) {
@@ -169,4 +186,3 @@ func parseListLine(line, typ string) (TargetCfg, error) {
 	}
 	return t, nil
 }
-

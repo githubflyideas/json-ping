@@ -132,11 +132,15 @@ func TestDownsampleRound(t *testing.T) {
 func TestTierDownsamplesOldDays(t *testing.T) {
 	dir := t.TempDir()
 	s, err := NewStore(dir, []TargetCfg{{Name: "X", Type: "icmp", Host: "1.1.1.1", dir: "X"}})
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	old := time.Now().AddDate(0, 0, -40).Format("2006-01-02")
 	recent := time.Now().AddDate(0, 0, -5).Format("2006-01-02")
 	ms := make([]float64, 20)
-	for i := range ms { ms[i] = float64(i + 30) }
+	for i := range ms {
+		ms[i] = float64(i + 30)
+	}
 	for _, day := range []string{old, recent} {
 		f, _ := os.Create(dir + "/X/" + day + ".jsonl")
 		for i := 0; i < 10; i++ {

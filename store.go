@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -20,7 +21,12 @@ import (
 //   汇总层  — data/summary/<target>.jsonl,每天一行,永久保留
 // 没有数据库。文本文件可以 grep、可以 tar、永远不会"坏得打不开"。
 
-const ringCap = 1440 // 24h @ 1min
+// ringSpan is how much history the in-memory ring holds, in seconds. It is a time
+// window, not a round count: a count sized for 1/min silently shrinks the window for
+// faster targets (pace=fast kept 6h, interval=5 kept 2h), which starved the 24h
+// stats and the detector's 4h baseline. Memory per target is bounded by the
+// interval: ~1.8MB for pace=fast (15s x 30 samples), ~20MB at interval=1.
+const ringSpan = 24 * 60 * 60
 
 type Store struct {
 	mu    sync.RWMutex
@@ -30,10 +36,12 @@ type Store struct {
 	rings map[string][]Round
 	total uint64 // 本进程累计轮数(心跳用)
 	start time.Time
+	cold  map[string]bool // day files Tier has already downsampled; only Tier touches it
 }
 
 func NewStore(dir string, targets []TargetCfg) (*Store, error) {
-	s := &Store{dir: dir, dirs: map[string]string{}, rings: map[string][]Round{}, start: time.Now()}
+	s := &Store{dir: dir, dirs: map[string]string{}, rings: map[string][]Round{}, start: time.Now(),
+		cold: map[string]bool{}}
 	for _, t := range targets {
 		s.names = append(s.names, t.Name)
 		s.dirs[t.Name] = t.dir
@@ -70,14 +78,39 @@ func (s *Store) Append(name string, r Round) error {
 	f.Close()
 
 	s.mu.Lock()
-	ring := append(s.rings[name], r)
-	if len(ring) > ringCap {
-		ring = ring[len(ring)-ringCap:]
+	if _, ok := s.rings[name]; ok { // removed by a reload while this round was in flight
+		s.rings[name] = ringAppend(s.rings[name], r)
 	}
-	s.rings[name] = ring
 	s.total++
 	s.mu.Unlock()
 	return nil
+}
+
+// ringAppend adds r in time order and drops rounds older than ringSpan behind the
+// newest. Order matters because Recent binary-searches the ring; the only way to
+// arrive out of order is a probe loop stopped by a reload finishing its last round
+// after the replacement loop has already written one.
+//
+// Dropping is a reslice, not a copy: append reallocates once the backing array is
+// exhausted and copies only the live tail, so the dead head is reclaimed then. The
+// dropped slots are cleared so their sample slices can be collected right away.
+func ringAppend(ring []Round, r Round) []Round {
+	n := len(ring)
+	if n == 0 || ring[n-1].T <= r.T {
+		ring = append(ring, r)
+	} else {
+		i := sort.Search(n, func(i int) bool { return ring[i].T > r.T })
+		ring = append(ring, Round{})
+		copy(ring[i+1:], ring[i:])
+		ring[i] = r
+	}
+	cut := ring[len(ring)-1].T - ringSpan
+	i := sort.Search(len(ring), func(i int) bool { return ring[i].T >= cut })
+	if i > 0 {
+		clear(ring[:i])
+		ring = ring[i:]
+	}
+	return ring
 }
 
 // Replay 开机回放昨天+今天的文件,重建飞行记录器。
@@ -86,7 +119,7 @@ func (s *Store) Replay() {
 		time.Now().AddDate(0, 0, -1).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"),
 	}
-	cut := time.Now().Add(-24 * time.Hour).Unix()
+	cut := time.Now().Unix() - ringSpan
 	for _, name := range s.names {
 		var ring []Round
 		for _, day := range days {
@@ -104,9 +137,9 @@ func (s *Store) Replay() {
 			}
 			f.Close()
 		}
-		if len(ring) > ringCap {
-			ring = ring[len(ring)-ringCap:]
-		}
+		// day files are append-only and normally sorted; a reload overlap can leave
+		// one round out of place, and Recent relies on order
+		sort.SliceStable(ring, func(i, j int) bool { return ring[i].T < ring[j].T })
 		s.mu.Lock()
 		s.rings[name] = ring
 		s.mu.Unlock()
@@ -179,7 +212,10 @@ func (s *Store) ReadRange(ctx context.Context, name string, from, to int64) []Ro
 	if from >= ringFrom {
 		rounds = s.Recent(name, from)
 	} else {
-		for d := time.Unix(from, 0); !d.After(time.Unix(to, 0)); d = d.AddDate(0, 0, 1) {
+		// walk calendar days from local midnight: stepping from `from` itself skipped
+		// the last day's file whenever to's time of day was earlier than from's
+		y, m, dd := time.Unix(from, 0).Date()
+		for d := time.Date(y, m, dd, 0, 0, 0, 0, time.Local); !d.After(time.Unix(to, 0)); d = d.AddDate(0, 0, 1) {
 			select {
 			case <-ctx.Done(): // client went away — stop reading, drop what we have
 				return []Round{}
@@ -297,8 +333,10 @@ func (s *Store) Downsample(name, day string) error {
 	if err != nil || len(rounds) == 0 {
 		return err
 	}
-	// already downsampled? cheap check on the first round
-	if len(rounds[0].MS) <= 4 {
+	// Already downsampled only if no round still has more than 4 samples. Checking
+	// just the first round is wrong: a lossy first round (<=4 replies) made the whole
+	// day look done, so days that began during an outage were never downsampled.
+	if !slices.ContainsFunc(rounds, func(r Round) bool { return len(r.MS) > 4 }) {
 		return nil
 	}
 	path := s.dayFile(name, day)
@@ -353,15 +391,24 @@ func (s *Store) Tier(hotDays, keepDays int) {
 			if len(fn) < 10 || strings.HasSuffix(fn, ".tmp") {
 				continue
 			}
-			day := fn[:10]
+			day, path := fn[:10], filepath.Join(s.dir, dir, fn)
 			switch {
 			case day < keepCut:
-				os.Remove(filepath.Join(s.dir, dir, fn))
+				os.Remove(path)
+				delete(s.cold, path)
 				log.Printf("retention: removed %s/%s", dir, fn)
 			case day < hotCut:
+				// Cold files never change again, so each is read once per process
+				// instead of every night: without this, every night re-read all ~270
+				// cold days of every target just to find nothing to do.
+				if s.cold[path] {
+					continue
+				}
 				if err := s.Downsample(name, day); err != nil {
 					log.Printf("downsample %s/%s failed: %v", dir, day, err)
+					continue
 				}
+				s.cold[path] = true
 			}
 		}
 	}

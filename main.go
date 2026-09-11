@@ -3,10 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -20,11 +23,103 @@ const demoPingList = `# one ICMP target per line; # is a comment; saved changes 
 www.google.com Demo pace=fast
 `
 
+var (
+	flagListen = flag.String("listen", defaultConfig().Listen, "web UI address `host:port`; 0.0.0.0 = all interfaces")
+	flagLocal  = flag.Bool("localhost", false, "bind 127.0.0.1 only (this machine only), keeping the --listen port")
+	flagVer    = flag.Bool("version", false, "print version and exit")
+)
+
+// helpText is everything needed to get pingping running without the README:
+// every command in it can be copied as is.
+const helpText = `pingping %s — network latency oscilloscope. One binary: no Docker, no database, no config file.
+
+USAGE
+  ./pingping [flags] [user=NAME[,NAME2...] passwd=PASS[,PASS2...]]
+  Flags go first; user= / passwd= come last.
+
+QUICK START
+  mkdir -p /home/pingping && cd /home/pingping
+  # put the pingping binary here (downloads: https://github.com/githubflyideas/pingping/releases)
+  ./pingping
+  # open http://<server-ip>:8517   (all interfaces, port 8517, no login)
+
+EXAMPLES
+  ./pingping user=admin passwd=admin            # login page; a login lasts 2 hours
+  ./pingping user=alice,bob passwd=pw1,pw2      # two users, paired by position
+  ./pingping --listen 0.0.0.0:9000              # all interfaces, port 9000
+  ./pingping --listen 10.1.2.3:8517             # one interface only
+  ./pingping --localhost                        # 127.0.0.1:8517, this machine only
+  ./pingping --listen 0.0.0.0:9000 user=admin passwd=admin
+
+RUN IN BACKGROUND  (always start from /home/pingping: targets/ and data/ live there)
+  cd /home/pingping
+  nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &   # start, keeps running after logout
+  tail -f pingping.log                                              # watch the log
+  pkill -x pingping                                                 # stop
+
+TARGETS  (edit any time; saved changes apply within 3 seconds, no restart)
+  vim targets/ping.list    # ICMP: host       [name] [pace=fast|slow] [interval=SECONDS]
+  vim targets/tcp.list     # TCP:  host:port  [name] [pace=fast|slow] [interval=SECONDS]
+
+  echo "8.8.8.8 google-dns"            >> targets/ping.list
+  echo "1.2.3.4 my-link pace=fast"     >> targets/ping.list
+  echo "10.0.0.5:443 api-gw"           >> targets/tcp.list
+  echo "10.0.0.6:3306 db interval=30"  >> targets/tcp.list
+
+  pace   default: every 60s, 20 packets   fast: every 15s, 30 packets   slow: every 300s, 20 packets
+  Lines starting with # are comments. Without a name, the host is the name.
+
+ICMP PERMISSION  (root: nothing to do. Other users: without this, ping targets show 100%% loss)
+  sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+
+FILES  (relative to the directory pingping is started in)
+  targets/ping.list                 created on first run with one demo target (www.google.com)
+  targets/tcp.list                  create it when you need TCP targets; picked up automatically
+  data/<target>/YYYY-MM-DD.jsonl    full samples 30 days, downsampled after, deleted at 300 days
+
+FLAGS
+`
+
+// usage prints helpText followed by the flags, written with -- like the examples.
+func usage(w io.Writer) {
+	fmt.Fprintf(w, helpText, version)
+	flag.VisitAll(func(f *flag.Flag) {
+		if strings.HasPrefix(f.Name, "test.") { // go test registers its own
+			return
+		}
+		name, u := flag.UnquoteUsage(f)
+		arg := "--" + f.Name
+		if name != "" {
+			arg += " " + name
+		}
+		def := ""
+		if f.DefValue != "" && f.DefValue != "false" {
+			def = fmt.Sprintf(" (default %s)", f.DefValue)
+		}
+		fmt.Fprintf(w, "  %-22s %s%s\n", arg, u, def)
+	})
+	fmt.Fprintf(w, "  %-22s %s\n", "--help", "this text (also: ./pingping help)")
+}
+
+func wantsHelp(args []string) bool {
+	for _, a := range args {
+		switch a {
+		case "-h", "-help", "--help", "help":
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
-	localOnly := flag.Bool("localhost", false, "bind 127.0.0.1 only; put Caddy/Nginx in front for auth/TLS")
-	showVer := flag.Bool("version", false, "print version")
+	flag.Usage = func() { usage(flag.CommandLine.Output()) }
+	if wantsHelp(os.Args[1:]) { // asked for: stdout, so it pipes into less/grep
+		flag.CommandLine.SetOutput(os.Stdout)
+		flag.Usage()
+		return
+	}
 	flag.Parse()
-	if *showVer {
+	if *flagVer {
 		fmt.Println("pingping", version)
 		return
 	}
@@ -35,10 +130,10 @@ func main() {
 	cfg := defaultConfig()
 	users, err := parseAuthArgs(flag.Args())
 	if err != nil {
-		log.Fatalf("bad auth args: %v", err)
+		log.Fatalf("bad auth args: %v (see ./pingping --help)", err)
 	}
-	if *localOnly {
-		cfg.Listen = "127.0.0.1" + portOf(cfg.Listen)
+	if cfg.Listen, err = listenAddr(*flagListen, *flagLocal); err != nil {
+		log.Fatalf("bad --listen: %v (see ./pingping --help)", err)
 	}
 
 	// first-run bootstrap: a demo target list, nothing else
@@ -72,10 +167,10 @@ func main() {
 	go housekeeping(cfg, store, stop)
 
 	log.Printf("pingping %s up · %d targets · listening on %s · data in %s · %d-day retention",
-		version, len(cfg.Targets), cfg.Listen, cfg.DataDir, cfg.RetentionDays)
+		version, len(cfg.TargetList()), cfg.Listen, cfg.DataDir, cfg.RetentionDays)
 	log.Printf("➜  open http://localhost%s for the smoke graph", portOf(cfg.Listen))
 	if len(users) == 0 {
-		log.Printf("tip: web UI is open; protect it with  ./pingping user=u1,u2 passwd=p1,p2  or --localhost + reverse proxy")
+		log.Printf("tip: web UI is open to everyone; add a login with  ./pingping user=u1,u2 passwd=p1,p2")
 	} else {
 		log.Printf("web login enabled for %d user(s)", len(users))
 	}
@@ -98,6 +193,9 @@ func parseAuthArgs(args []string) (map[string]string, error) {
 	var users, pws []string
 	for _, a := range args {
 		k, v, ok := strings.Cut(a, "=")
+		if strings.HasPrefix(a, "-") {
+			return nil, fmt.Errorf("flag %q after user=/passwd=: put flags first", a)
+		}
 		if !ok {
 			return nil, fmt.Errorf("unrecognized argument %q (expected user=... passwd=...)", a)
 		}
@@ -199,13 +297,17 @@ func applyTargets(cfg *Config, fresh []TargetCfg, store *Store, det *Detector, m
 		ch := make(chan struct{})
 		mgr[name] = ch
 		runningSig[name] = t
-		go probeLoop(t, cfg.Probe, store, detector0(det), ch)
+		startProbe(t, cfg.Probe, store, det, ch)
 		log.Printf("[%s] target online (%s)", name, t.Host)
 	}
-	cfg.Targets = all
+	cfg.SetTargets(all)
 }
 
-func detector0(d *Detector) *Detector { return d }
+// startProbe is swapped out by tests so reload logic can be checked without
+// real probe goroutines outliving the test.
+var startProbe = func(t TargetCfg, p ProbeCfg, s *Store, d *Detector, stop chan struct{}) {
+	go probeLoop(t, p, s, d, stop)
+}
 
 // housekeeping: nightly retention at 00:05 — filename-dated files, plain unlink.
 func housekeeping(cfg *Config, store *Store, stop chan struct{}) {
@@ -225,6 +327,22 @@ func housekeeping(cfg *Config, store *Store, stop chan struct{}) {
 			store.Tier(cfg.HotDays, cfg.RetentionDays)
 		}
 	}
+}
+
+// listenAddr validates --listen and applies --localhost, which keeps the port and
+// swaps the host for 127.0.0.1. A bare ":8517" means all interfaces, as in net.Listen.
+func listenAddr(listen string, localOnly bool) (string, error) {
+	host, port, err := net.SplitHostPort(listen)
+	if err != nil {
+		return "", err
+	}
+	if n, err := strconv.Atoi(port); err != nil || n < 1 || n > 65535 {
+		return "", fmt.Errorf("port %q must be 1-65535", port)
+	}
+	if localOnly {
+		host = "127.0.0.1"
+	}
+	return net.JoinHostPort(host, port), nil
 }
 
 func portOf(listen string) string {
