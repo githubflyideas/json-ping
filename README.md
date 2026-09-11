@@ -6,12 +6,12 @@ A smokeping-like network tool.One binary file,
 Just scp and run
 
 ```bash
-cd /home
+#install
+cd /home/pingping/
 wget https://github.com/githubflyideas/pingping/releases/download/v2.11.2/pingping-v2.11.2-linux-amd64.tar.gz
-
 tar -zxvf pingping-v2.11.2-linux-amd64.tar.gz
 
-cd pingping-v2.11.2-linux-amd64
+#run
 ./pingping user=admin passwd=admin
 ```
 Open http://localhost:8517 and watch your first puff of network smoke.
@@ -38,11 +38,6 @@ PingPing is a lightweight network latency and link quality visualization tool.
 
 It may not be as powerful or feature-rich as Smokeping, but it's ridiculously lightweight.
 
-Single binary
-No Docker
-No database
-No web server
-Plain text configuration. Edit targets with your favorite editor—or even a single echo command.
 
 
 
