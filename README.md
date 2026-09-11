@@ -6,6 +6,7 @@ A smokeping-like network tool
 
 PingPing is a lightweight network latency and link quality visualization tool.
 It may not be as powerful or feature-rich as Smokeping, but it's lightweight.
+
 Just scp and run
 
 
