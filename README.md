@@ -2,8 +2,12 @@
 
 ![window: a 40-minute congestion event — smoke spreads, bursts marked ◆](docs/hero8.png)
 
-A smokeping-like network tool.One binary file,
+A smokeping-like network tool
+
+PingPing is a lightweight network latency and link quality visualization tool.
+It may not be as powerful or feature-rich as Smokeping, but it's ridiculously lightweight.
 Just scp and run
+
 
 ```bash
 #install
@@ -34,9 +38,7 @@ find ./data -type f -name '20*.jsonl' -mtime +"$days" -print -delete
 ```
 Latest [Releases](https://github.com/githubflyideas/pingping/releases)   
 
-PingPing is a lightweight network latency and link quality visualization tool.
 
-It may not be as powerful or feature-rich as Smokeping, but it's ridiculously lightweight.
 
 
 
