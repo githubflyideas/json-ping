@@ -26,12 +26,16 @@ Add target host
 ```
  echo "1.2.3.4 myhost pace=fast"    >> targets/ping.list
  echo "10.0.0.5:443 ads-api"        >> targets/tcp.list
+
+or
+vi targets/ping.list
+vi targets/tcp.list
 ```
 Data cleanup
 Retention is fixed at 300 days. To purge earlier by hand, just find+delete):
 
 ```
-# clean.sh [N] — delete pingping probe data older than N days (default 30).
+
 # Data files are plain per-day JSONL under ./data/<target>/YYYY-MM-DD.jsonl,
 # so cleanup is just find+delete. Run from the pingping directory.
 days="${1:-30}"
