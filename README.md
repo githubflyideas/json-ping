@@ -13,8 +13,8 @@ Just scp and run
 ```bash
 #install
 mkdir -p /home/pingping && cd /home/pingping
-wget https://github.com/githubflyideas/pingping/releases/download/v2.11.2/pingping-v2.11.2-linux-amd64.tar.gz
-tar -zxvf pingping-v2.11.2-linux-amd64.tar.gz
+wget https://github.com/githubflyideas/pingping/releases/download/v2.12.0/pingping-v2.12.0-linux-amd64.tar.gz
+tar -zxvf pingping-v2.12.0-linux-amd64.tar.gz
 
 #run
 ./pingping user=admin passwd=admin
