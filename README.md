@@ -44,7 +44,7 @@ Retention is fixed at 300 days. To purge earlier by hand, just find+delete):
 # Data files are plain per-day JSONL under ./data/<target>/YYYY-MM-DD.jsonl,
 # so cleanup is just find+delete. Run from the pingping directory.
 days="${1:-30}"
-find ./data -type f -name '20*.jsonl' -mtime +"$days" -print -delete    
+find ./data -type f -name '202[6-9]*.jsonl' -mtime +"$days" -print -delete    
 ```
 Latest [Releases](https://github.com/githubflyideas/pingping/releases)   
 
