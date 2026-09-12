@@ -19,10 +19,12 @@ tar -zxvf pingping-v2.12.0-linux-amd64.tar.gz
 #run
 ./pingping user=admin passwd=admin
 
+Open http://localhost:8517 and watch your first puff of network smoke.
+
 #run in background
 nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &
 ```
-Open http://localhost:8517 and watch your first puff of network smoke.
+
 
 -----------------------------------------------------------
 Add target host 
