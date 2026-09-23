@@ -50,7 +50,7 @@ Latest [Releases](https://github.com/githubflyideas/pingping/releases)
 
 
 
-Quick Comparison
+### ✨ Quick Comparison    [PINGPING] VS [FOGPING] VS [SmokeTrail]
 <img width="1410" height="731" alt="image" src="https://github.com/user-attachments/assets/7e7a4018-5eef-41b7-8896-2205136da49b" />
 
 
