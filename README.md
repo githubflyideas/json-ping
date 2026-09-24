@@ -51,9 +51,14 @@ Latest [Releases](https://github.com/githubflyideas/pingping/releases)
 
 
 ### ✨ Quick Comparison    [PINGPING] VS [FOGPING] VS [SmokeTrail]
-<img width="1410" height="731" alt="image" src="https://github.com/user-attachments/assets/7e7a4018-5eef-41b7-8896-2205136da49b" />
-
-
+| Feature / Project | **json-ping** 🏷️ <br>*(Formerly PingPing)* | **FogPing** 🌫️ <br>*(Intermediate)* | **PingPing** 💨 *(v0.3.2)* <br>*(Formerly SmokeTrail)* |
+| :--- | :--- | :--- | :--- |
+| **Migration / Lineage** | 🔄 Renamed from PingPing | ➡️ Foundation for modern PingPing | 🚀 **Flagship successor** (SmokeTrail ➔ PingPing) |
+| **Core Concept** | Lightweight SmokePing-like monitor | Lightweight SmokePing-like monitor | **An enhanced successor to FogPing** |
+| **Binary Type** | Single Binary | Single Binary | Single Binary |
+| **Storage Engine** | Plain JSON File | Embedded SQLite | Embedded SQLite (Optimized) |
+| **Target Management** | 📝 File-based *(via `vim`/`nano`)* | 🌐 **Web UI** *(Add/Edit targets)* | 🌐 **Web UI** *(Add/Edit targets)* |
+| **Platform Compatibility** | Linux Only | Linux Only | 🌐 **6 Architectures** *(Win/Linux/macOS)* |
 
 apache 2.0
 
