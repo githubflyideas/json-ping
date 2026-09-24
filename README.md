@@ -51,9 +51,9 @@ Latest [Releases](https://github.com/githubflyideas/pingping/releases)
 
 
 ### ✨ Quick Comparison   [json-ping]  VS [fogping] VS [pingping] 
-| Feature / Project | **json-ping** 🏷️  | **FogPing** 🌫️ <br>*(not json, use sqlite)* | **pingPing** 💨 *(v0.3.2)* <br>*(Formerly SmokeTrail)* |
+| Feature / Project | **json-ping** 🏷️  | **fogping** 🌫️ <br>*(not json, use sqlite)* | **pingping** 💨 *(v0.3.2)* <br>*(Formerly SmokeTrail)* |
 | :--- | :--- | :--- | :--- |
-| **Migration / Lineage** | 🔄old Pingping   | ➡️ old Pingping use sqlite | 🚀 **Flagship successor** (SmokeTrail ➔ pingping) |
+| **Migration / Lineage** | 🔄old Pingping   | ➡️ Replaced JSON with SQLite | 🚀 **Flagship successor** (SmokeTrail ➔ pingping) |
 | **Core Concept** | Lightweight SmokePing-like monitor | Lightweight SmokePing-like monitor | **An enhanced successor to fogping** |
 | **Binary Type** | Single Binary | Single Binary | Single Binary |
 | **Storage Engine** | Plain JSON File | Embedded SQLite | Embedded SQLite (Optimized) |
