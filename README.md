@@ -51,10 +51,10 @@ Latest [Releases](https://github.com/githubflyideas/pingping/releases)
 
 
 ### ✨ Quick Comparison   [json-ping]  VS [fogping] VS [pingping] 
-| Feature / Project | **json-ping** 🏷️  | **FogPing** 🌫️ <br>*(not json, use sqlite)* | **PingPing** 💨 *(v0.3.2)* <br>*(Formerly SmokeTrail)* |
+| Feature / Project | **json-ping** 🏷️  | **FogPing** 🌫️ <br>*(not json, use sqlite)* | **pingPing** 💨 *(v0.3.2)* <br>*(Formerly SmokeTrail)* |
 | :--- | :--- | :--- | :--- |
-| **Migration / Lineage** | 🔄old Pingping   | ➡️ old Pingping use sqlite | 🚀 **Flagship successor** (SmokeTrail ➔ PingPing) |
-| **Core Concept** | Lightweight SmokePing-like monitor | Lightweight SmokePing-like monitor | **An enhanced successor to FogPing** |
+| **Migration / Lineage** | 🔄old Pingping   | ➡️ old Pingping use sqlite | 🚀 **Flagship successor** (SmokeTrail ➔ pingping) |
+| **Core Concept** | Lightweight SmokePing-like monitor | Lightweight SmokePing-like monitor | **An enhanced successor to fogping** |
 | **Binary Type** | Single Binary | Single Binary | Single Binary |
 | **Storage Engine** | Plain JSON File | Embedded SQLite | Embedded SQLite (Optimized) |
 | **Target Management** | 📝 File-based *(via `vim`/`nano`)* | 🌐 **Web UI** *(Add/Edit targets)* | 🌐 **Web UI** *(Add/Edit targets)* |
