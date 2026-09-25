@@ -29,10 +29,6 @@ nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &
 -----------------------------------------------------------
 Add target host 
 ```
- echo "1.2.3.4 myhost pace=fast"    >> targets/ping.list
- echo "10.0.0.5:443 ads-api"        >> targets/tcp.list
-
-or
 vi targets/ping.list
 vi targets/tcp.list
 ```
