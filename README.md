@@ -88,7 +88,4 @@ Flags come first, `user=` / `passwd=` last:
 nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &   # background; stop with: pkill -x pingping
 ```
 
-Everything else is fixed: `targets/` and `data/` sit in the directory you start it in (`/home/pingping`), the default pace
-probes every 60 s with 20 packets, full samples are kept 30 days and data is deleted after 300 days.
-Targets are not parameters — edit `targets/ping.list` / `targets/tcp.list`; changes apply within 3 seconds.
 
