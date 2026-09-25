@@ -26,6 +26,28 @@ nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &
 ```
 
 
+### Docker
+
+Image: `githubflyideas/json-ping` (also `ghcr.io/githubflyideas/json-ping`) — amd64 / arm64 / arm/v7.
+Inside the container the working directory is `/data`, so `targets/` and `data/` live there.
+
+```bash
+mkdir -p ~/json-ping
+docker run -d --name json-ping --restart unless-stopped \
+  --user $(id -u):$(id -g) -p 8517:8517 \
+  -v ~/json-ping:/data githubflyideas/json-ping
+
+# with login: replace the default command (flags first, user=/passwd= last)
+docker run -d --name json-ping --user $(id -u):$(id -g) -p 8517:8517 \
+  -v ~/json-ping:/data githubflyideas/json-ping \
+  --listen 0.0.0.0:8517 user=admin passwd=admin
+```
+
+Edit targets on the host (`vi ~/json-ping/targets/ping.list`) or inside the container
+(`docker exec -it json-ping vi targets/ping.list`). Saved changes apply within 3 seconds.
+
+`--user $(id -u):$(id -g)` makes the container write as you, so the mounted directory stays writable.
+
 -----------------------------------------------------------
 Add target host 
 ```
