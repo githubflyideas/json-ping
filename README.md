@@ -1,4 +1,4 @@
-
+> "I like pure JSON, and I enjoy editing configs in vim. But if you want a modern Web UI with SQLite, go check out FogPing or PingPing!"
 
 ![window: a 40-minute congestion event — smoke spreads, bursts marked ◆](docs/hero8.png)
 
