@@ -136,10 +136,23 @@ func main() {
 		log.Fatalf("bad --listen: %v (see ./pingping --help)", err)
 	}
 
+	// the working directory holds targets/ and data/; fail loudly if we can't write
+	// there (typical case: a root-owned bind mount in Docker)
+	if err := checkWritable("."); err != nil {
+		log.Fatalf("cannot write to the working directory: %v\n"+
+			"  run pingping from a directory you own, or in Docker either:\n"+
+			"    docker run --user $(id -u):$(id -g) ... -v <host-dir>:/data ...\n"+
+			"    sudo chown -R %d:%d <host-dir>", err, os.Getuid(), os.Getgid())
+	}
+
 	// first-run bootstrap: a demo target list, nothing else
 	if _, err := os.Stat(filepath.Join(cfg.TargetsDir, "ping.list")); os.IsNotExist(err) {
-		os.MkdirAll(cfg.TargetsDir, 0o755)
-		os.WriteFile(filepath.Join(cfg.TargetsDir, "ping.list"), []byte(demoPingList), 0o644)
+		if err := os.MkdirAll(cfg.TargetsDir, 0o755); err != nil {
+			log.Fatalf("create %s: %v", cfg.TargetsDir, err)
+		}
+		if err := os.WriteFile(filepath.Join(cfg.TargetsDir, "ping.list"), []byte(demoPingList), 0o644); err != nil {
+			log.Fatalf("write %s/ping.list: %v", cfg.TargetsDir, err)
+		}
 		log.Printf("no targets found — generated %s/ping.list (probing www.google.com)", cfg.TargetsDir)
 		log.Printf(`add a target with one line: echo "1.2.3.4 my-link" >> %s/ping.list (applies automatically)`, cfg.TargetsDir)
 	}
@@ -352,4 +365,15 @@ func portOf(listen string) string {
 		}
 	}
 	return ":8517"
+}
+
+// checkWritable creates and removes a probe file in dir.
+func checkWritable(dir string) error {
+	f, err := os.CreateTemp(dir, ".pingping-write-test-*")
+	if err != nil {
+		return err
+	}
+	name := f.Name()
+	f.Close()
+	return os.Remove(name)
 }
