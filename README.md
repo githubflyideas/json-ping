@@ -48,6 +48,10 @@ Edit targets on the host (`vi ~/json-ping/targets/ping.list`) or inside the cont
 
 `--user $(id -u):$(id -g)` makes the container write as you, so the mounted directory stays writable.
 
+### MikroTik RouterOS
+
+Run it on the router as a RouterOS `/app` (7.22+, arm64/x86): see [mikrotik/](mikrotik/README.md).
+
 -----------------------------------------------------------
 Add target host 
 ```

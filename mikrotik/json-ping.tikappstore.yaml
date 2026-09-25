@@ -1,0 +1,26 @@
+# json-ping app store for RouterOS: a YAML array of /app definitions.
+# /app/settings/set app-store-urls=https://raw.githubusercontent.com/githubflyideas/json-ping/main/mikrotik/json-ping.tikappstore.yaml
+- name: json-ping
+  descr: SmokePing-style latency and loss monitor. One Go binary, plain JSONL files, targets are text files you edit in vi.
+  page: https://github.com/githubflyideas/json-ping
+  category: monitoring
+  default-credentials: admin:admin
+  url-path: /
+  services:
+    json-ping:
+      image: docker.io/githubflyideas/json-ping:3.1
+      container_name: json-ping
+      hostname: json-ping
+      user: 0:0
+      restart: unless-stopped
+      command:
+      - --listen
+      - 0.0.0.0:8517
+      - user=admin
+      - passwd=admin
+      ports:
+      - 8517:8517:web
+      volumes:
+      - data:/data
+  volumes:
+    data: {}

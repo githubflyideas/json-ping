@@ -1,0 +1,27 @@
+# json-ping as a RouterOS /app (RouterOS 7.22+, container package, arm64 or x86).
+# Add:  /app/add yaml-url=https://raw.githubusercontent.com/githubflyideas/json-ping/main/mikrotik/json-ping.tikapp.yaml
+name: json-ping
+descr: SmokePing-style latency and loss monitor. One Go binary, plain JSONL files, targets are text files you edit in vi.
+page: https://github.com/githubflyideas/json-ping
+category: monitoring
+default-credentials: admin:admin
+url-path: /
+services:
+  json-ping:
+    image: docker.io/githubflyideas/json-ping:3.1
+    container_name: json-ping
+    hostname: json-ping
+    # root inside the container: RouterOS creates the volume directory itself,
+    # and root lets the probe fall back to a raw ICMP socket if unprivileged
+    # ICMP is not allowed by the router's container runtime
+    user: "0:0"
+    restart: unless-stopped
+    # login is on by default: the web port is published through dst-nat on
+    # the router. Change the password here before enabling the app.
+    command: ["--listen", "0.0.0.0:8517", "user=admin", "passwd=admin"]
+    ports:
+      - "8517:8517:web"
+    volumes:
+      - data:/data
+volumes:
+  data: {}
