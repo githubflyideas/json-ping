@@ -4,7 +4,7 @@ name: docker
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["v2.0.1"]
   workflow_dispatch:
 
 jobs:
