@@ -4,25 +4,25 @@
 
 A smokeping-like network tool
 
-PingPing is a lightweight network latency and link quality visualization tool.
+json-ping is a lightweight network latency and link quality visualization tool.
 It may not be as powerful or feature-rich as Smokeping, but it's lightweight.
 
 Just scp and run
 
 
 ```bash
-#install
-mkdir -p /home/pingping && cd /home/pingping
-wget https://github.com/githubflyideas/pingping/releases/download/v2.12.0/pingping-v2.12.0-linux-amd64.tar.gz
-tar -zxvf pingping-v2.12.0-linux-amd64.tar.gz
+#install (linux-amd64; also linux-arm64, darwin-amd64, darwin-arm64)
+mkdir -p /home/json-ping && cd /home/json-ping
+wget https://github.com/githubflyideas/json-ping/releases/latest/download/json-ping-linux-amd64.tar.gz
+tar -zxvf json-ping-linux-amd64.tar.gz
 
 #run
-./pingping user=admin passwd=admin
+./json-ping user=admin passwd=admin
 
 Open http://localhost:8517 and watch your first puff of network smoke.
 
 #run in background
-nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &
+nohup ./json-ping user=admin passwd=admin > json-ping.log 2>&1 &
 ```
 
 
@@ -60,11 +60,11 @@ Retention is fixed at 300 days. To purge earlier by hand, just find+delete):
 ```
 
 # Data files are plain per-day JSONL under ./data/<target>/YYYY-MM-DD.jsonl,
-# so cleanup is just find+delete. Run from the pingping directory.
+# so cleanup is just find+delete. Run from the json-ping directory.
 days="${1:-30}"
 find ./data -type f -name '202[6-9]*.jsonl' -mtime +"$days" -print -delete    
 ```
-Latest [Releases](https://github.com/githubflyideas/pingping/releases)   
+Latest [Releases](https://github.com/githubflyideas/json-ping/releases)   
 
 
 
@@ -83,10 +83,10 @@ apache 2.0
 
 ## Parameters
 
-`./pingping --help` prints all of this with copy-ready examples.
+`./json-ping --help` prints all of this with copy-ready examples.
 
 ```
-./pingping [flags] [user=NAME[,NAME2...] passwd=PASS[,PASS2...]]
+./json-ping [flags] [user=NAME[,NAME2...] passwd=PASS[,PASS2...]]
 ```
 
 | Parameter | Default | Meaning |
@@ -94,16 +94,16 @@ apache 2.0
 | `--listen host:port` | `0.0.0.0:8517` | Web UI address. `0.0.0.0` = all interfaces; an IP binds one interface only |
 | `--localhost` | off | Bind `127.0.0.1` only (this machine only), keeping the `--listen` port |
 | `--version` | | Print version and exit |
-| `--help` | | Help with examples (also `./pingping help`) |
+| `--help` | | Help with examples (also `./json-ping help`) |
 | `user=a,b passwd=x,y` | no login | Turn the login page on. Users and passwords pair by position and the counts must match. A login lasts 2 hours; a restart logs everyone out |
 
 Flags come first, `user=` / `passwd=` last:
 
 ```
-./pingping                                              # 0.0.0.0:8517, no login
-./pingping --listen 0.0.0.0:9000 user=admin passwd=admin
-./pingping --localhost                                  # 127.0.0.1:8517
-nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &   # background; stop with: pkill -x pingping
+./json-ping                                              # 0.0.0.0:8517, no login
+./json-ping --listen 0.0.0.0:9000 user=admin passwd=admin
+./json-ping --localhost                                  # 127.0.0.1:8517
+nohup ./json-ping user=admin passwd=admin > json-ping.log 2>&1 &   # background; stop with: pkill -x json-ping
 ```
 
 

@@ -29,33 +29,33 @@ var (
 	flagVer    = flag.Bool("version", false, "print version and exit")
 )
 
-// helpText is everything needed to get pingping running without the README:
+// helpText is everything needed to get json-ping running without the README:
 // every command in it can be copied as is.
-const helpText = `pingping %s — network latency oscilloscope. One binary: no Docker, no database, no config file.
+const helpText = `json-ping %s — network latency oscilloscope. One binary: no database, no config file (Docker optional).
 
 USAGE
-  ./pingping [flags] [user=NAME[,NAME2...] passwd=PASS[,PASS2...]]
+  ./json-ping [flags] [user=NAME[,NAME2...] passwd=PASS[,PASS2...]]
   Flags go first; user= / passwd= come last.
 
 QUICK START
-  mkdir -p /home/pingping && cd /home/pingping
-  # put the pingping binary here (downloads: https://github.com/githubflyideas/pingping/releases)
-  ./pingping
+  mkdir -p /home/json-ping && cd /home/json-ping
+  # put the json-ping binary here (downloads: https://github.com/githubflyideas/json-ping/releases)
+  ./json-ping
   # open http://<server-ip>:8517   (all interfaces, port 8517, no login)
 
 EXAMPLES
-  ./pingping user=admin passwd=admin            # login page; a login lasts 2 hours
-  ./pingping user=alice,bob passwd=pw1,pw2      # two users, paired by position
-  ./pingping --listen 0.0.0.0:9000              # all interfaces, port 9000
-  ./pingping --listen 10.1.2.3:8517             # one interface only
-  ./pingping --localhost                        # 127.0.0.1:8517, this machine only
-  ./pingping --listen 0.0.0.0:9000 user=admin passwd=admin
+  ./json-ping user=admin passwd=admin            # login page; a login lasts 2 hours
+  ./json-ping user=alice,bob passwd=pw1,pw2      # two users, paired by position
+  ./json-ping --listen 0.0.0.0:9000              # all interfaces, port 9000
+  ./json-ping --listen 10.1.2.3:8517             # one interface only
+  ./json-ping --localhost                        # 127.0.0.1:8517, this machine only
+  ./json-ping --listen 0.0.0.0:9000 user=admin passwd=admin
 
-RUN IN BACKGROUND  (always start from /home/pingping: targets/ and data/ live there)
-  cd /home/pingping
-  nohup ./pingping user=admin passwd=admin > pingping.log 2>&1 &   # start, keeps running after logout
-  tail -f pingping.log                                              # watch the log
-  pkill -x pingping                                                 # stop
+RUN IN BACKGROUND  (always start from /home/json-ping: targets/ and data/ live there)
+  cd /home/json-ping
+  nohup ./json-ping user=admin passwd=admin > json-ping.log 2>&1 &   # start, keeps running after logout
+  tail -f json-ping.log                                              # watch the log
+  pkill -x json-ping                                                 # stop
 
 TARGETS  (edit any time; saved changes apply within 3 seconds, no restart)
   vim targets/ping.list    # ICMP: host       [name] [pace=fast|slow] [interval=SECONDS]
@@ -72,7 +72,7 @@ TARGETS  (edit any time; saved changes apply within 3 seconds, no restart)
 ICMP PERMISSION  (root: nothing to do. Other users: without this, ping targets show 100%% loss)
   sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
 
-FILES  (relative to the directory pingping is started in)
+FILES  (relative to the directory json-ping is started in)
   targets/ping.list                 created on first run with one demo target (www.google.com)
   targets/tcp.list                  create it when you need TCP targets; picked up automatically
   data/<target>/YYYY-MM-DD.jsonl    full samples 30 days, downsampled after, deleted at 300 days
@@ -98,7 +98,7 @@ func usage(w io.Writer) {
 		}
 		fmt.Fprintf(w, "  %-22s %s%s\n", arg, u, def)
 	})
-	fmt.Fprintf(w, "  %-22s %s\n", "--help", "this text (also: ./pingping help)")
+	fmt.Fprintf(w, "  %-22s %s\n", "--help", "this text (also: ./json-ping help)")
 }
 
 func wantsHelp(args []string) bool {
@@ -120,27 +120,27 @@ func main() {
 	}
 	flag.Parse()
 	if *flagVer {
-		fmt.Println("pingping", version)
+		fmt.Println("json-ping", version)
 		return
 	}
 
 	// v2.1: no config file. Program parameters are constants; users edit target
 	// lists and, optionally, pass web credentials on the command line:
-	//   ./pingping user=u1,u2 passwd=p1,p2
+	//   ./json-ping user=u1,u2 passwd=p1,p2
 	cfg := defaultConfig()
 	users, err := parseAuthArgs(flag.Args())
 	if err != nil {
-		log.Fatalf("bad auth args: %v (see ./pingping --help)", err)
+		log.Fatalf("bad auth args: %v (see ./json-ping --help)", err)
 	}
 	if cfg.Listen, err = listenAddr(*flagListen, *flagLocal); err != nil {
-		log.Fatalf("bad --listen: %v (see ./pingping --help)", err)
+		log.Fatalf("bad --listen: %v (see ./json-ping --help)", err)
 	}
 
 	// the working directory holds targets/ and data/; fail loudly if we can't write
 	// there (typical case: a root-owned bind mount in Docker)
 	if err := checkWritable("."); err != nil {
 		log.Fatalf("cannot write to the working directory: %v\n"+
-			"  run pingping from a directory you own, or in Docker either:\n"+
+			"  run json-ping from a directory you own, or in Docker either:\n"+
 			"    docker run --user $(id -u):$(id -g) ... -v <host-dir>:/data ...\n"+
 			"    sudo chown -R %d:%d <host-dir>", err, os.Getuid(), os.Getgid())
 	}
@@ -179,11 +179,11 @@ func main() {
 	go reloadLoop(cfg, store, detector, mgr, stop)
 	go housekeeping(cfg, store, stop)
 
-	log.Printf("pingping %s up · %d targets · listening on %s · data in %s · %d-day retention",
+	log.Printf("json-ping %s up · %d targets · listening on %s · data in %s · %d-day retention",
 		version, len(cfg.TargetList()), cfg.Listen, cfg.DataDir, cfg.RetentionDays)
 	log.Printf("➜  open http://localhost%s for the smoke graph", portOf(cfg.Listen))
 	if len(users) == 0 {
-		log.Printf("tip: web UI is open to everyone; add a login with  ./pingping user=u1,u2 passwd=p1,p2")
+		log.Printf("tip: web UI is open to everyone; add a login with  ./json-ping user=u1,u2 passwd=p1,p2")
 	} else {
 		log.Printf("web login enabled for %d user(s)", len(users))
 	}
@@ -198,7 +198,7 @@ func main() {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
 	close(stop)
-	log.Printf("pingping shutting down")
+	log.Printf("json-ping shutting down")
 }
 
 // parseAuthArgs parses trailing "user=a,b passwd=x,y" arguments into a cred map.
@@ -369,7 +369,7 @@ func portOf(listen string) string {
 
 // checkWritable creates and removes a probe file in dir.
 func checkWritable(dir string) error {
-	f, err := os.CreateTemp(dir, ".pingping-write-test-*")
+	f, err := os.CreateTemp(dir, ".json-ping-write-test-*")
 	if err != nil {
 		return err
 	}

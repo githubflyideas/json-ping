@@ -26,13 +26,13 @@ func TestHelpDocumentsEveryFlag(t *testing.T) {
 	}
 }
 
-// Every ./pingping example in --help must be accepted by the real parsers, so
+// Every ./json-ping example in --help must be accepted by the real parsers, so
 // the help cannot drift from the code.
 func TestHelpExamplesParse(t *testing.T) {
 	n := 0
 	for _, line := range strings.Split(helpOutput(), "\n") {
 		line = strings.TrimPrefix(strings.TrimSpace(line), "nohup ")
-		if !strings.HasPrefix(line, "./pingping") || strings.HasPrefix(line, "./pingping [") {
+		if !strings.HasPrefix(line, "./json-ping") || strings.HasPrefix(line, "./json-ping [") {
 			continue
 		}
 		n++

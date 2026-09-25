@@ -1,47 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>pingping — downloads</title>
+<meta charset="utf-8">
+<title>json-ping — downloads</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root { --bg:#0a0c0e; --panel:#101613; --line:#1e242a; --phos:#7ce38b; --amber:#e8b44a;
-          --ink:#c7d0c9; --dim:#5c6b60; --mono: ui-monospace,"SF Mono",Consolas,monospace; }
-  * { box-sizing:border-box; margin:0; }
-  body { background:var(--bg); color:var(--ink); font-family:var(--mono); padding:40px 20px; }
-  .wrap { max-width:720px; margin:0 auto; }
-  h1 { color:var(--phos); font-size:22px; letter-spacing:.04em; }
-  p { color:var(--dim); font-size:13px; margin:10px 0 26px; }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  th { text-align:left; color:var(--dim); font-size:10px; letter-spacing:.14em;
-       padding:10px 12px; border-bottom:1px solid var(--line); }
-  td { padding:12px; border-bottom:1px solid var(--line); }
-  a { color:var(--amber); text-decoration:none; }
-  a:hover { text-decoration:underline; }
-  .hint { color:var(--dim); font-size:12px; margin-top:22px; line-height:1.7; }
-  code { color:var(--phos); }
+  body{font:15px/1.6 ui-monospace,Menlo,Consolas,monospace;max-width:720px;margin:40px auto;padding:0 16px;background:#0b0f0c;color:#cfe8d6}
+  a{color:#5fe39a} td{padding:4px 12px 4px 0} h1{font-size:20px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>pingping downloads</h1>
-  <p>Pick by OS and CPU. Linux builds are fully static — they run on every distro (Ubuntu, Debian, Rocky, Arch, Alpine…).</p>
+  <h1>json-ping downloads</h1>
+  <p>Latest release. Extract and run <code>./json-ping</code> — zero dependencies.</p>
   <table>
-    <tr><th>OS</th><th>CPU</th><th>TYPICAL HARDWARE</th><th>DOWNLOAD</th></tr>
-    <tr><td>Linux</td><td>amd64</td><td>Intel / AMD servers &amp; PCs</td>
-        <td><a href="https://github.com/githubflyideas/pingping/releases/download/v2.5.0/pingping-v2.5.0-linux-amd64.tar.gz">pingping-linux-amd64.tar.gz</a></td></tr>
-    <tr><td>Linux</td><td>arm64</td><td>Raspberry Pi 4/5, ARM cloud (Ampere, Graviton)</td>
-        <td><a href="https://github.com/githubflyideas/pingping/releases/download/v2.5.0/pingping-v2.5.0-linux-arm64.tar.gz">pingping-linux-arm64.tar.gz</a></td></tr>
-    <tr><td>macOS</td><td>amd64</td><td>Intel Mac</td>
-        <td><a href="https://github.com/githubflyideas/pingping/releases/download/v2.5.0/pingping-v2.5.0-darwin-amd64.tar.gz">pingping-darwin-amd64.tar.gz</a></td></tr>
-    <tr><td>macOS</td><td>arm64</td><td>Apple Silicon (M1–M4)</td>
-        <td><a href="https://github.com/githubflyideas/pingping/releases/download/v2.5.0/pingping-v2.5.0-darwin-arm64.tar.gz">pingping-darwin-arm64.tar.gz</a></td></tr>
+    <tr><td>Linux x86-64</td>
+        <td><a href="https://github.com/githubflyideas/json-ping/releases/latest/download/json-ping-linux-amd64.tar.gz">json-ping-linux-amd64.tar.gz</a></td></tr>
+    <tr><td>Linux ARM64</td>
+        <td><a href="https://github.com/githubflyideas/json-ping/releases/latest/download/json-ping-linux-arm64.tar.gz">json-ping-linux-arm64.tar.gz</a></td></tr>
+    <tr><td>macOS Intel</td>
+        <td><a href="https://github.com/githubflyideas/json-ping/releases/latest/download/json-ping-darwin-amd64.tar.gz">json-ping-darwin-amd64.tar.gz</a></td></tr>
+    <tr><td>macOS Apple silicon</td>
+        <td><a href="https://github.com/githubflyideas/json-ping/releases/latest/download/json-ping-darwin-arm64.tar.gz">json-ping-darwin-arm64.tar.gz</a></td></tr>
   </table>
-  <div class="hint">
-    Not sure? Run <code>uname -m</code>: <code>x86_64</code> → amd64, <code>aarch64</code>/<code>arm64</code> → arm64.<br>
-    Verify with <a href="https://github.com/githubflyideas/pingping/releases/download/v2.5.0/SHA256SUMS">SHA256SUMS</a>:
-    <code>sha256sum -c SHA256SUMS --ignore-missing</code><br>
-    All versions: <a href="https://github.com/githubflyideas/pingping/releases">github.com/githubflyideas/pingping/releases</a>
-  </div>
-</div>
+  <p>Verify with <a href="https://github.com/githubflyideas/json-ping/releases/latest/download/SHA256SUMS">SHA256SUMS</a>.
+     Docker: <code>docker run -d -p 8517:8517 githubflyideas/json-ping</code></p>
+  <p>All versions: <a href="https://github.com/githubflyideas/json-ping/releases">github.com/githubflyideas/json-ping/releases</a></p>
 </body>
 </html>

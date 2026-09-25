@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
-<title>pingping — link quality oscilloscope</title>
+<title>json-ping — link quality oscilloscope</title>
 <style>
     /* Terminal — a trading-desk screen at 2am. Amber trace (the classic financial-
      terminal color) over a slate-blue cloud that sinks to navy at the edges. */
@@ -141,7 +141,7 @@
 </head>
 <body>
 <header>
-  <div class="mark">pingping <span class="brand-led"></span></div>
+  <div class="mark">json-ping <span class="brand-led"></span></div>
   <div class="tag">One binary. One graph. One metric: Latency.</div>
   <button class="pill" id="themeBtn" title="switch theme" style="margin-left:auto">◐ <span id="themeName">dark</span></button>
 </header>
@@ -190,14 +190,14 @@
 </footer>
 
 <div class="promos">
-  <a class="promo sponsor" id="sponsorSlot" href="https://github.com/githubflyideas/pingping#sponsor" target="_blank" rel="noopener">
+  <a class="promo sponsor" id="sponsorSlot" href="https://github.com/githubflyideas/json-ping#sponsor" target="_blank" rel="noopener">
     <div class="promo-h">SPONSOR</div>
     <div class="promo-b">This slot is for one VPS / IDC / network sponsor. Your GIF here — reach out on GitHub.</div>
   </a>
   <div class="promo share">
-    <div class="promo-h">LIKE PINGPING? <span id="ver" style="color:var(--phos)"></span></div>
+    <div class="promo-h">LIKE JSON-PING? <span id="ver" style="color:var(--phos)"></span></div>
     <div class="promo-b">
-      <a href="https://github.com/githubflyideas/pingping" target="_blank" rel="noopener">★ Star on GitHub</a>
+      <a href="https://github.com/githubflyideas/json-ping" target="_blank" rel="noopener">★ Star on GitHub</a>
       <a href="https://github.com/githubflyideas/fogping" target="_blank" rel="noopener">Powered by Fogping</a>
       <span class="share-links" id="shareLinks"></span>
     </div>
@@ -433,13 +433,13 @@ fetch('/api/version').then(r => r.json()).then(d => {
 }).catch(() => {});
 
 (function buildShare() {
-  const url = 'https://github.com/githubflyideas/pingping';
-  const text = 'pingping — a single-binary link quality oscilloscope. One binary. One graph. One metric: Latency.';
+  const url = 'https://github.com/githubflyideas/json-ping';
+  const text = 'json-ping — a single-binary link quality oscilloscope. One binary. One graph. One metric: Latency.';
   const links = {
     X: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
     Facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-    Reddit: `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent('pingping — modern SmokePing alternative')}`,
-    HN: `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(url)}&t=${encodeURIComponent('pingping — single-binary link quality oscilloscope')}`
+    Reddit: `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent('json-ping — modern SmokePing alternative')}`,
+    HN: `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(url)}&t=${encodeURIComponent('json-ping — single-binary link quality oscilloscope')}`
   };
   const box = document.getElementById('shareLinks');
   Object.entries(links).forEach(([k, href]) => {

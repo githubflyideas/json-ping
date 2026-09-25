@@ -3,16 +3,16 @@
 # Zero-dependency single binary.
 version: 2
 
-project_name: pingping
+project_name: json-ping
 
 before:
   hooks:
     - go test ./...
 
 builds:
-  - id: pingping
+  - id: json-ping
     main: .
-    binary: pingping
+    binary: json-ping
     env:
       - CGO_ENABLED=0
     flags:
@@ -26,7 +26,7 @@ builds:
 archives:
   - id: tar
     formats: [tar.gz]
-    name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
     files:
       - LICENSE
 
@@ -41,4 +41,4 @@ release:
   header: |
     ## Install
 
-    scp a tarball below, extract, `./pingping`. Zero dependencies.
+    scp a tarball below, extract, `./json-ping`. Zero dependencies.
