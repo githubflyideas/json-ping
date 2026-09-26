@@ -28,6 +28,12 @@ or
 nohup ./json-ping user=admin passwd=admin > json-ping.log 2>&1 &
 ```
 
+Add target host 
+```
+vi targets/ping.list
+vi targets/tcp.list
+```
+
 
 ### Docker desktop
 <img width="924" height="920" alt="image" src="https://github.com/user-attachments/assets/cb9e16c4-223d-4240-a6d9-67422da49d01" />
@@ -58,11 +64,7 @@ Edit targets on the host (`vi ~/json-ping/targets/ping.list`) or inside the cont
 Run it on the router as a RouterOS `/app` (7.22+, arm64/x86): see [mikrotik/](mikrotik/README.md).
 
 -----------------------------------------------------------
-Add target host 
-```
-vi targets/ping.list
-vi targets/tcp.list
-```
+
 Data cleanup
 Retention is fixed at 300 days. To purge earlier by hand, just find+delete):
 
