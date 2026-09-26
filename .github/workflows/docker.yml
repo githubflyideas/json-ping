@@ -4,13 +4,7 @@ name: docker
 
 on:
   push:
-    tags: |
-     type=raw,value=lastest
-     type=sha
-     type=semver,pattern={{version}}
-     type=semver,pattern={{major}}.{{minor}}
-
-
+    tags: ["v*"]
   workflow_dispatch:
 
 jobs:
