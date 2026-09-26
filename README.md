@@ -17,16 +17,21 @@ wget https://github.com/githubflyideas/json-ping/releases/latest/download/json-p
 tar -zxvf json-ping-linux-amd64.tar.gz
 
 #run
+./json-ping
+Open http://localhost:8517 and watch your first puff of network smoke.
+
+or 
 ./json-ping user=admin passwd=admin
 
-Open http://localhost:8517 and watch your first puff of network smoke.
 
 #run in background
 nohup ./json-ping user=admin passwd=admin > json-ping.log 2>&1 &
 ```
 
 
-### Docker
+### Docker desktop
+<img width="924" height="920" alt="image" src="https://github.com/user-attachments/assets/cb9e16c4-223d-4240-a6d9-67422da49d01" />
+
 
 Image: `githubflyideas/json-ping` (also `ghcr.io/githubflyideas/json-ping`) — amd64 / arm64 / arm/v7.
 Inside the container the working directory is `/data`, so `targets/` and `data/` live there.
