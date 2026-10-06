@@ -57,11 +57,7 @@ docker run -d --name json-ping --user $(id -u):$(id -g) -p 8517:8517 \
 Edit targets on the host (`vi ~/json-ping/targets/ping.list`) or inside the container
 (`docker exec -it json-ping vi targets/ping.list`). Saved changes apply within 3 seconds.
 
-`--user $(id -u):$(id -g)` makes the container write as you, so the mounted directory stays writable.
 
-### MikroTik RouterOS
-
-Run it on the router as a RouterOS `/app` (7.22+, arm64/x86): see [mikrotik/](mikrotik/README.md).
 
 -----------------------------------------------------------
 
