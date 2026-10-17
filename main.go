@@ -178,6 +178,8 @@ func main() {
 	stop := make(chan struct{})
 	go reloadLoop(cfg, store, detector, mgr, stop)
 	go housekeeping(cfg, store, stop)
+	sponsor = newSponsorCache("json-ping", cfg.DataDir)
+	go sponsor.run(stop)
 
 	log.Printf("json-ping %s up · %d targets · listening on %s · data in %s · %d-day retention",
 		version, len(cfg.TargetList()), cfg.Listen, cfg.DataDir, cfg.RetentionDays)

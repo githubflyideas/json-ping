@@ -125,6 +125,7 @@ func newMux(cfg *Config, store *Store, users map[string]string) http.Handler {
 			})(w, r)
 		}
 	}
+	registerSponsor(mux, guard) // same gate as the page that shows the slot
 	page := func(name string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			b, _ := staticFS.ReadFile("static/" + name)
