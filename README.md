@@ -1,4 +1,4 @@
-> "I like pure JSON, and I enjoy editing configs in vim. But if you want an administrative Web UI, go check out fogping or pingping! Since json-ping is read-only, you can safely share it with your team."
+> "I like pure JSON, and I enjoy editing configs in vim. But if you want an administrative Web UI, go check out fogping or pingping! Since the json-ping Web UI is read-only, you can safely share it with your team."
 
 ![json-ping web UI: latency graph](docs/images/json-ping-graph.png)
 
