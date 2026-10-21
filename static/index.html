@@ -118,24 +118,12 @@
   .ro .l { font-family:var(--sans); font-size:var(--fs-micro); font-weight:600;
            color:var(--dim); letter-spacing:.13em; margin-top:4px; text-transform:uppercase; }
   .sp { flex:1; }
-  /* Header sponsor slot (234x60). sponsor.js centres it between the title block
-     and the controls when it fits (sp-in), or gives it its own row (sp-row). */
-  .hdr-sp { flex:none; align-self:center; width:234px; height:60px; margin:0 auto; }
-  header.sp-in > .hdr-actions, header.sp-in > .hdr-right { margin-left:0 !important; }
-  header.sp-notag > .tag { display:none; }
-  header.sp-row > .hdr-sp { order:99; flex-basis:100%; width:auto; display:flex; justify-content:center; margin:0; }
-  .hdr-sp-def { box-sizing:border-box; width:234px; height:60px; display:flex; flex-direction:column;
-                justify-content:center; align-items:center; gap:4px; border:1px dashed var(--line);
-                border-radius:6px; background:var(--panel); color:var(--ink); text-decoration:none;
-                font-family:var(--sans); font-size:var(--fs-small); }
-  .hdr-sp-def:hover { border-color:var(--phos); color:var(--phos); }
-  .hdr-sp-def small { font-size:var(--fs-micro); font-weight:700; letter-spacing:.16em; color:var(--dim); }
   footer { margin-top:14px; color:var(--dim); font-size:var(--fs-small);
            display:flex; gap:14px; flex-wrap:wrap; align-items:baseline; }
   #conclusion { color:var(--ink); font-family:var(--mono); font-weight:600;
                 font-size:var(--fs-body); }
   .legend { color:var(--dim); font-family:var(--sans); font-size:var(--fs-small); }
-  .promos { display:grid; grid-template-columns:1fr; gap:14px; margin-top:16px; }
+  .promos { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
   @media (max-width:720px) { .promos { grid-template-columns:1fr; } }
   .promo { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
            box-shadow:var(--shadow); text-decoration:none; display:block; }
@@ -155,8 +143,7 @@
 <header>
   <div class="mark">json-ping <span class="brand-led"></span></div>
   <div class="tag">One binary. One graph. One metric: Latency.</div>
-  <div class="hdr-sp" id="sponsorTop"><a class="hdr-sp-def" href="https://github.com/githubflyideas/ads-sponsor" target="_blank" rel="noopener"><small>SPONSOR</small><span>Sponsor slot — your ad here</span></a></div>
-  <button class="pill hdr-right" id="themeBtn" title="switch theme" style="margin-left:auto">◐ <span id="themeName">dark</span></button>
+  <button class="pill" id="themeBtn" title="switch theme" style="margin-left:auto">◐ <span id="themeName">dark</span></button>
 </header>
 
 <div class="row">
@@ -203,6 +190,10 @@
 </footer>
 
 <div class="promos">
+  <a class="promo sponsor" id="sponsorSlot" href="https://github.com/githubflyideas/json-ping#sponsor" target="_blank" rel="noopener">
+    <div class="promo-h">SPONSOR</div>
+    <div class="promo-b">This slot is for one VPS / IDC / network sponsor. Your GIF here — reach out on GitHub.</div>
+  </a>
   <div class="promo share">
     <div class="promo-h">LIKE JSON-PING? <span id="ver" style="color:var(--phos)"></span></div>
     <div class="promo-b">
@@ -475,7 +466,5 @@ $('themeBtn').onclick = () => {
 };
 window.addEventListener('resize', () => chart && chart.resize());
 </script>
-<script src="/static/sponsor.js"></script>
-<script>loadSponsor('json-ping');</script>
 </body>
 </html>

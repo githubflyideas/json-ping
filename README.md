@@ -112,7 +112,3 @@ Flags come first, `user=` / `passwd=` last:
 ./json-ping --localhost                                  # 127.0.0.1:8517
 nohup ./json-ping user=admin passwd=admin > json-ping.log 2>&1 &   # background; stop with: pkill -x json-ping
 ```
-
-## Sponsor slot
-
-The sponsor box in the web UI shows up to four images from [githubflyideas/ads-sponsor](https://github.com/githubflyideas/ads-sponsor). The program itself fetches them from GitHub about once an hour and caches them in a `sponsor` folder inside its data directory; if that cache is empty, the browser may fetch them from GitHub directly. If neither works, the built-in sponsor text is shown.
